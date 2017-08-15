@@ -10,22 +10,22 @@ class Config:
 		self.network = 'resnet50'
 
 		# setting for data augmentation
-		self.use_horizontal_flips = False
-		self.use_vertical_flips = False
-		self.rot_90 = False
+		self.use_horizontal_flips = True
+		self.use_vertical_flips = True
+		self.rot_90 = True
 
 		# anchor box scales
-		self.anchor_box_scales = [128, 256, 512]
+		self.anchor_box_scales = [32, 64, 128]#[128, 256, 512]
 
 		# anchor box ratios
 		self.anchor_box_ratios = [[1, 1], [1, 2], [2, 1]]
 
 		# size to resize the smallest side of the image
-		self.im_size = 600
+		self.im_size = 1088#600
 
 		# image channel-wise mean to subtract
-		self.img_channel_mean = [103.939, 116.779, 123.68]
-		self.img_scaling_factor = 1.0
+		self.img_channel_mean = [103.939, 116.779, 123.68]#[0.0, 0.0, 0.0]
+		self.img_scaling_factor = 1.0#255.0
 
 		# number of ROIs at once
 		self.num_rois = 4

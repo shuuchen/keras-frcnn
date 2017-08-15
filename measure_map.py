@@ -130,10 +130,22 @@ def format_img(img, C):
 	img = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
 	img = img[:, :, (2, 1, 0)]
 	img = img.astype(np.float32)
+
+
+	img[:, :, 0] -= np.mean(img[:, :, 0], axis=0)
+	img[:, :, 1] -= np.mean(img[:, :, 1], axis=0)
+	img[:, :, 2] -= np.mean(img[:, :, 2], axis=0)
+
+	'''
+	img[:, :, 0] /= np.std(img[:, :, 0], axis=0)
+	img[:, :, 1] /= np.std(img[:, :, 1], axis=0)
+	img[:, :, 2] /= np.std(img[:, :, 2], axis=0)
+
 	img[:, :, 0] -= C.img_channel_mean[0]
 	img[:, :, 1] -= C.img_channel_mean[1]
 	img[:, :, 2] -= C.img_channel_mean[2]
 	img /= C.img_scaling_factor
+	'''
 	img = np.transpose(img, (2, 0, 1))
 	img = np.expand_dims(img, axis=0)
 	return img, fx, fy

@@ -7,6 +7,8 @@ from . import data_augment
 import threading
 import itertools
 
+import sys
+
 
 def union(au, bu, area_intersection):
 	area_a = (au[2] - au[0]) * (au[3] - au[1])
@@ -102,7 +104,7 @@ def calc_rpn(C, img_data, width, height, resized_width, resized_height, img_leng
 	best_x_for_bbox = np.zeros((num_bboxes, 4)).astype(int)
 	best_dx_for_bbox = np.zeros((num_bboxes, 4)).astype(np.float32)
 
-	# get the GT box coordinates, and resize to account for image resizing
+	# get the GT(Ground Truth) box coordinates, and resize to account for image resizing
 	gta = np.zeros((num_bboxes, 4))
 	for bbox_num, bbox in enumerate(img_data['bboxes']):
 		# get the GT box coordinates, and resize to account for image resizing
@@ -112,7 +114,6 @@ def calc_rpn(C, img_data, width, height, resized_width, resized_height, img_leng
 		gta[bbox_num, 3] = bbox['y2'] * (resized_height / float(height))
 	
 	# rpn ground truth
-
 	for anchor_size_idx in range(len(anchor_sizes)):
 		for anchor_ratio_idx in range(n_anchratios):
 			anchor_x = anchor_sizes[anchor_size_idx] * anchor_ratios[anchor_ratio_idx][0]
@@ -178,7 +179,7 @@ def calc_rpn(C, img_data, width, height, resized_width, resized_height, img_leng
 									best_iou_for_loc = curr_iou
 									best_regr = (tx, ty, tw, th)
 
-							# if the IOU is >0.3 and <0.7, it is ambiguous and no included in the objective
+							# if the IOU is >0.3 and <0.7, it is ambiguous and not included in the objective
 							if C.rpn_min_overlap < curr_iou < C.rpn_max_overlap:
 								# gray zone between neg and pos
 								if bbox_type != 'pos':
@@ -198,21 +199,15 @@ def calc_rpn(C, img_data, width, height, resized_width, resized_height, img_leng
 						y_rpn_regr[jy, ix, start:start+4] = best_regr
 
 	# we ensure that every bbox has at least one positive RPN region
-
 	for idx in range(num_anchors_for_bbox.shape[0]):
 		if num_anchors_for_bbox[idx] == 0:
 			# no box with an IOU greater than zero ...
 			if best_anchor_for_bbox[idx, 0] == -1:
 				continue
-			y_is_box_valid[
-				best_anchor_for_bbox[idx,0], best_anchor_for_bbox[idx,1], best_anchor_for_bbox[idx,2] + n_anchratios *
-				best_anchor_for_bbox[idx,3]] = 1
-			y_rpn_overlap[
-				best_anchor_for_bbox[idx,0], best_anchor_for_bbox[idx,1], best_anchor_for_bbox[idx,2] + n_anchratios *
-				best_anchor_for_bbox[idx,3]] = 1
+			y_is_box_valid[best_anchor_for_bbox[idx,0], best_anchor_for_bbox[idx,1], best_anchor_for_bbox[idx,2] + n_anchratios * best_anchor_for_bbox[idx,3]] = 1
+			y_rpn_overlap[best_anchor_for_bbox[idx,0], best_anchor_for_bbox[idx,1], best_anchor_for_bbox[idx,2] + n_anchratios *best_anchor_for_bbox[idx,3]] = 1
 			start = 4 * (best_anchor_for_bbox[idx,2] + n_anchratios * best_anchor_for_bbox[idx,3])
-			y_rpn_regr[
-				best_anchor_for_bbox[idx,0], best_anchor_for_bbox[idx,1], start:start+4] = best_dx_for_bbox[idx, :]
+			y_rpn_regr[best_anchor_for_bbox[idx,0], best_anchor_for_bbox[idx,1], start:start+4] = best_dx_for_bbox[idx, :]
 
 	y_rpn_overlap = np.transpose(y_rpn_overlap, (2, 0, 1))
 	y_rpn_overlap = np.expand_dims(y_rpn_overlap, axis=0)
@@ -226,11 +221,18 @@ def calc_rpn(C, img_data, width, height, resized_width, resized_height, img_leng
 	pos_locs = np.where(np.logical_and(y_rpn_overlap[0, :, :, :] == 1, y_is_box_valid[0, :, :, :] == 1))
 	neg_locs = np.where(np.logical_and(y_rpn_overlap[0, :, :, :] == 0, y_is_box_valid[0, :, :, :] == 1))
 
+	#print('>>>>>>>>>>>>>>>>>>>>>', pos_locs.shape, num_pos, len(neg_locs[0]), '<<<<<<<<<<<<<<<<<<<<<<<<')
+
 	num_pos = len(pos_locs[0])
 
 	# one issue is that the RPN has many more negative than positive regions, so we turn off some of the negative
 	# regions. We also limit it to 256 regions.
 	num_regions = 256
+	
+	# TODO: try to increase num_regions because the number of tiny objects is increasing
+	#num_regions = 512
+	
+	#print('>>>>>>>>>>>>>>>>>>>>>', num_pos, len(neg_locs[0]), '<<<<<<<<<<<<<<<<<<<<<<<<')
 
 	if len(pos_locs[0]) > num_regions/2:
 		val_locs = random.sample(range(len(pos_locs[0])), len(pos_locs[0]) - num_regions/2)
@@ -288,7 +290,6 @@ def get_anchor_gt(all_img_data, class_count, C, img_length_calc_function, backen
 					continue
 
 				# read in image, and optionally add augmentation
-
 				if mode == 'train':
 					img_data_aug, x_img = data_augment.augment(img_data, C, augment=True)
 				else:
@@ -312,13 +313,23 @@ def get_anchor_gt(all_img_data, class_count, C, img_length_calc_function, backen
 					continue
 
 				# Zero-center by mean pixel, and preprocess image
-
 				x_img = x_img[:,:, (2, 1, 0)]  # BGR -> RGB
 				x_img = x_img.astype(np.float32)
+				
+				x_img[:, :, 0] -= np.mean(x_img[:, :, 0], axis=0)
+				x_img[:, :, 1] -= np.mean(x_img[:, :, 1], axis=0)
+				x_img[:, :, 2] -= np.mean(x_img[:, :, 2], axis=0)
+				
+				'''
+				x_img[:, :, 0] /= np.std(x_img[:, :, 0], axis=0)
+				x_img[:, :, 1] /= np.std(x_img[:, :, 1], axis=0)
+				x_img[:, :, 2] /= np.std(x_img[:, :, 2], axis=0)
+
 				x_img[:, :, 0] -= C.img_channel_mean[0]
 				x_img[:, :, 1] -= C.img_channel_mean[1]
 				x_img[:, :, 2] -= C.img_channel_mean[2]
 				x_img /= C.img_scaling_factor
+				'''
 
 				x_img = np.transpose(x_img, (2, 0, 1))
 				x_img = np.expand_dims(x_img, axis=0)
@@ -334,4 +345,5 @@ def get_anchor_gt(all_img_data, class_count, C, img_length_calc_function, backen
 
 			except Exception as e:
 				print(e)
+				sys.exit('---------------------(data_generators: 339)---------------------')
 				continue

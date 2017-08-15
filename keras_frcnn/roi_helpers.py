@@ -4,6 +4,8 @@ import math
 from . import data_generators
 import copy
 
+import sys
+
 
 def calc_iou(R, img_data, C, class_mapping):
 
@@ -87,13 +89,13 @@ def calc_iou(R, img_data, C, class_mapping):
 			y_class_regr_label.append(copy.deepcopy(labels))
 
 	if len(x_roi) == 0:
-		return None, None, None, None
+		return None, None, None
 
 	X = np.array(x_roi)
 	Y1 = np.array(y_class_num)
 	Y2 = np.concatenate([np.array(y_class_regr_label),np.array(y_class_regr_coords)],axis=1)
 
-	return np.expand_dims(X, axis=0), np.expand_dims(Y1, axis=0), np.expand_dims(Y2, axis=0), IoUs
+	return np.expand_dims(X, axis=0), np.expand_dims(Y1, axis=0), np.expand_dims(Y2, axis=0)#, IoUs
 
 def apply_regr(x, y, w, h, tx, ty, tw, th):
 	try:
@@ -118,6 +120,7 @@ def apply_regr(x, y, w, h, tx, ty, tw, th):
 		return x, y, w, h
 	except Exception as e:
 		print(e)
+		sys.exit('----------------------(roi_helpers: 124)---------------------')
 		return x, y, w, h
 
 def apply_regr_np(X, T):
@@ -149,6 +152,7 @@ def apply_regr_np(X, T):
 		return np.stack([x1, y1, w1, h1])
 	except Exception as e:
 		print(e)
+		sys.exit('----------------------(roi_helpers: 155)---------------------')
 		return X
 
 def non_max_suppression_fast(boxes, probs, overlap_thresh=0.9, max_boxes=300):
@@ -252,7 +256,7 @@ def rpn_to_roi(rpn_layer, regr_layer, C, dim_ordering, use_regr=True, max_boxes=
 				regr = regr_layer[0, :, :, 4 * curr_layer:4 * curr_layer + 4]
 				regr = np.transpose(regr, (2, 0, 1))
 
-			X, Y = np.meshgrid(np.arange(cols),np. arange(rows))
+			X, Y = np.meshgrid(np.arange(cols), np.arange(rows))
 
 			A[0, :, :, curr_layer] = X - anchor_x/2
 			A[1, :, :, curr_layer] = Y - anchor_y/2

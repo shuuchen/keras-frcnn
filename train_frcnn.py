@@ -147,7 +147,7 @@ model_rpn.compile(optimizer=optimizer, loss=[losses.rpn_loss_cls(num_anchors), l
 model_classifier.compile(optimizer=optimizer_classifier, loss=[losses.class_loss_cls, losses.class_loss_regr(len(classes_count)-1)], metrics={'dense_class_{}'.format(len(classes_count)): 'accuracy'})
 model_all.compile(optimizer='sgd', loss='mae')
 
-epoch_length = 1000
+epoch_length = 100
 num_epochs = int(options.num_epochs)
 iter_num = 0
 
@@ -177,16 +177,16 @@ for epoch_num in range(num_epochs):
 				print('Average number of overlapping bounding boxes from RPN = {} for {} previous iterations'.format(mean_overlapping_bboxes, epoch_length))
 				if mean_overlapping_bboxes == 0:
 					print('RPN is not producing bounding boxes that overlap the ground truth boxes. Check RPN settings or keep training.')
-
+			# img_data is augmented
 			X, Y, img_data = next(data_gen_train)
 
 			loss_rpn = model_rpn.train_on_batch(X, Y)
-
+			
 			P_rpn = model_rpn.predict_on_batch(X)
 
 			R = roi_helpers.rpn_to_roi(P_rpn[0], P_rpn[1], C, K.image_dim_ordering(), use_regr=True, overlap_thresh=0.7, max_boxes=300)
 			# note: calc_iou converts from (x1,y1,x2,y2) to (x,y,w,h) format
-			X2, Y1, Y2, IouS = roi_helpers.calc_iou(R, img_data, C, class_mapping)
+			X2, Y1, Y2 = roi_helpers.calc_iou(R, img_data, C, class_mapping)
 
 			if X2 is None:
 				rpn_accuracy_rpn_monitor.append(0)
@@ -214,6 +214,7 @@ for epoch_num in range(num_epochs):
 					selected_pos_samples = pos_samples.tolist()
 				else:
 					selected_pos_samples = np.random.choice(pos_samples, C.num_rois//2, replace=False).tolist()
+				
 				try:
 					selected_neg_samples = np.random.choice(neg_samples, C.num_rois - len(selected_pos_samples), replace=False).tolist()
 				except:
@@ -276,6 +277,7 @@ for epoch_num in range(num_epochs):
 
 		except Exception as e:
 			print('Exception: {}'.format(e))
+			#sys.exit('---------------------------(train_frcnn: 279)-----------------------------')
 			continue
 
 print('Training complete, exiting.')
