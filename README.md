@@ -34,6 +34,9 @@ python test_frcnn.py -p [test_data_path]
   <img src="https://github.com/shuuchen/keras-frcnn/blob/master/data/113.png" height="432" width="792" />
 </p>
 
+## Any questions
+Please feel free to contact me if you have any questions. Wechat users can add me via dushuchen1022wind for direct communication.
+
 ## Thanks
 * https://github.com/yhenon/keras-frcnn
 
