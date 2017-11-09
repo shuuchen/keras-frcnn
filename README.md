@@ -20,7 +20,7 @@ Using Faster R-CNN to detect small objects in drone data.
 ## How to train
 * Simply specify the parameters
 ```python
-python train_frcnn.py -p [input_data_path]  --num_epochs [num_epoch] --input_weight_path [basic_model_path]
+python train_frcnn.py -p [voc_data_path]  --num_epochs [num_epoch] --input_weight_path [basic_model_path]
 ```
 
 ## How to test
