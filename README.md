@@ -19,8 +19,10 @@ Using Faster R-CNN to detect small objects in drone data.
 
 ## How to train
 * Simply specify the parameters
+  * The input path should contain at least a VOC2012 directory.
+  * Other parameters are specified in default, which are recommended to use.
 ```python
-python train_frcnn.py -p [voc_data_path]  --num_epochs [num_epoch] --input_weight_path [basic_model_path]
+python train_frcnn.py -p [voc_data_path]
 ```
 
 ## How to test
