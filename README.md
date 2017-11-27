@@ -15,7 +15,7 @@ Using Faster R-CNN to detect small objects in drone data.
 
 ## Training on drone data
 * Stanford drone dataset is used to train the model. http://cvgl.stanford.edu/projects/uav_data/
-* The data should be transformed to VOC2012 format for using.
+* The data must be transformed to VOC2012 format for using.
 
 ## How to train
 * Simply specify the parameters
