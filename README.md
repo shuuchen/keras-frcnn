@@ -23,6 +23,7 @@ Using Faster R-CNN to detect small objects in drone data.
   * Other parameters are specified in default, which are recommended to use.
 ```python
 python train_frcnn.py -p [voc_data_path] --output_weight_path [**.hdf5] --num_epochs 20 
+* There should be a voc2012 folder under [voc_data_path], where the training data is stored. 
 ```
 
 ## How to test
