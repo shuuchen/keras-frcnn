@@ -6,11 +6,13 @@ Using Faster R-CNN to detect small objects in drone data.
 * The original paper ueses RPN proposals of the sizes 128, 256 and 512, which is too big for small objects. I modified the sizes to 16, 32 and 64. As the result shows, small objects can be detected with high accuracy. However, due to the high computational cost, the prediction speed is not fast enough for real-time applications and can hardly be used in mobile applications. I 'd rather recommend SSD https://arxiv.org/pdf/1512.02325.pdf for real-time applications as it is an internally adaptive detecting algorithm which is fast and accurate. For mobile applications, you can modify the standard convs with depth-wise separable convs as in https://arxiv.org/pdf/1704.04861.pdf, which decreases the number of training parameters significantly. The speed/accuracy trade-offs for different applications are summarized in https://arxiv.org/pdf/1611.10012.pdf.
 
 ## Requirements
-* Keras 2.1.5
-* Python 3.5
-* tensorflow-gpu 1.4.0
-* CUDA 8.0
-* cudnn 6.0
+
+* Pay attention to the versions of various libraries when using tensorflow on gpus. The following versions work well.
+ * Keras 2.1.5
+ * Python 3.5
+ * tensorflow-gpu 1.4.0
+ * CUDA 8.0
+ * cudnn 6.0
 
 ## Pretrained models
 * Resnet50 is used as the basic pre-trained model.
